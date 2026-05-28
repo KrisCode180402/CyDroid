@@ -57,9 +57,18 @@ export function HeroSection() {
       className="relative w-full min-h-screen overflow-hidden bg-[#03070f]"
     >
       {/* ────────────────────────────────────────────────────
-          BACKGROUND VIDEO LAYER
+          BACKGROUND VIDEO & AMBIENT GLOW LAYER
       ──────────────────────────────────────────────────── */}
       <div className="absolute inset-0 z-0">
+        {/* Futuristic ambient mesh fallback background */}
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(circle at 75% 35%, rgba(0, 102, 255, 0.25) 0%, rgba(0, 240, 255, 0.12) 35%, rgba(3, 7, 15, 0.95) 75%)",
+          }}
+        />
+
         {/* Video element */}
         <video
           ref={videoRef}
