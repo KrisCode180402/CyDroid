@@ -35,13 +35,19 @@ export function HeroSection() {
     return () => clearTimeout(t);
   }, []);
 
-  // Force video play on mount (needed for some mobile/Safari)
+  // Force video load and play on mount & route transition
   React.useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
-    vid.play().catch(() => {
-      /* Autoplay may be blocked — video will still show poster */
-    });
+    try {
+      vid.load();
+      const p = vid.play();
+      if (p !== undefined) {
+        p.catch(() => {});
+      }
+    } catch {
+      // Ignore autoplay restriction failures
+    }
   }, []);
 
   return (
@@ -57,6 +63,7 @@ export function HeroSection() {
         {/* Video element */}
         <video
           ref={videoRef}
+          src={asset("/assets/topvid.mp4")}
           autoPlay
           muted
           loop

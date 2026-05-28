@@ -95,42 +95,35 @@ export function RobotBackground() {
     renderedFrame.current = frameN;
   }, []);
 
-  // ── Scroll handler — map scroll to frame index ──────────────────
+  // ── Scroll & Resize handler — map scroll to frame index ──────────
   React.useEffect(() => {
     const updateTarget = () => {
-      // Mark active scroll and pause background preloading to clear bandwidth
       scrollingRef.current = true;
       if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
       scrollTimerRef.current = setTimeout(() => {
         scrollingRef.current = false;
-        // Resume background preloading queue when scroll stops
         resumePreloadRef.current?.();
       }, 300);
 
       const scrollY = window.scrollY;
-      const hh = heroHeight.current;
-      const totalH = document.body.scrollHeight - window.innerHeight;
+      const hh = heroHeight.current > 0 ? heroHeight.current : window.innerHeight;
+      const totalH = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) - window.innerHeight;
 
-      // Progress 0→1 across the page after the hero
       const scrollable = totalH - hh;
       const progress = scrollable <= 0 ? 0 : Math.max(0, Math.min(1, (scrollY - hh) / scrollable));
 
-      // Map to frame 1–530
       const rawFrame = 1 + Math.round(progress * (TOTAL_FRAMES - 1));
       if (isMobileRef.current) {
-        // Decimate frames on mobile (multiples of 3)
         targetFrame.current = Math.max(1, Math.min(TOTAL_FRAMES, Math.round(rawFrame / 3) * 3));
       } else {
         targetFrame.current = rawFrame;
       }
 
-      // Fade in once past hero
       opacity.current = scrollY > hh - 100 ? Math.min(1, (scrollY - hh + 100) / 200) : 0;
       if (canvasRef.current) {
         canvasRef.current.style.opacity = String(opacity.current);
       }
 
-      // Prefetch nearby frames — optimized small prefetch window during scroll to avoid clogging network/CPU
       const cache = cacheRef.current;
       const t = targetFrame.current;
       const isMobile = isMobileRef.current;
@@ -144,37 +137,38 @@ export function RobotBackground() {
       }
     };
 
-    window.addEventListener("scroll", updateTarget, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", updateTarget);
-      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
-    };
-  }, []);
-
-  // ── Resize canvas to fill viewport ─────────────────────────────
-  React.useEffect(() => {
     const resize = () => {
       const canvas = canvasRef.current;
       if (!canvas) return;
 
       isMobileRef.current = window.innerWidth < 768;
-
-      // Optimization: For background visual animations behind dark overlays,
-      // a DPR of 1 provides 100% sharp rendering while reducing GPU rendering pixel overhead by 4x.
       const dpr = 1;
       canvas.width  = window.innerWidth  * dpr;
       canvas.height = window.innerHeight * dpr;
       canvas.style.width  = `${window.innerWidth}px`;
       canvas.style.height = `${window.innerHeight}px`;
-      // Hero is always 100vh
       heroHeight.current = window.innerHeight;
-      // Redraw current frame at new size
+
       if (renderedFrame.current > 0) draw(renderedFrame.current);
+      updateTarget();
     };
 
     resize();
+    updateTarget();
+
+    const t1 = setTimeout(updateTarget, 100);
+    const t2 = setTimeout(updateTarget, 500);
+
+    window.addEventListener("scroll", updateTarget, { passive: true });
     window.addEventListener("resize", resize, { passive: true });
-    return () => window.removeEventListener("resize", resize);
+
+    return () => {
+      window.removeEventListener("scroll", updateTarget);
+      window.removeEventListener("resize", resize);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+    };
   }, [draw]);
 
   // ── Initial frame load and background batch loading ─────────────
