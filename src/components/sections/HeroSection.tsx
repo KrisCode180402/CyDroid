@@ -35,19 +35,58 @@ export function HeroSection() {
     return () => clearTimeout(t);
   }, []);
 
-  // Force video load and play on mount & route transition
+  // Force video play on mount & route transition without calling vid.load() which interrupts native autoplay
   React.useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
-    try {
-      vid.load();
-      const p = vid.play();
-      if (p !== undefined) {
-        p.catch(() => {});
+
+    // Explicitly set DOM properties for strict browser autoplay enforcement
+    vid.muted = true;
+    vid.defaultMuted = true;
+    vid.playsInline = true;
+    vid.setAttribute("playsinline", "true");
+    vid.setAttribute("webkit-playsinline", "true");
+
+    const attemptPlay = () => {
+      if (!vid) return;
+      vid.muted = true;
+      const promise = vid.play();
+      if (promise !== undefined) {
+        promise.catch(() => {
+          // Autoplay policy blocked script playback (common on direct external link visits).
+          // Register light interaction handlers to trigger playback on first user action or mouse motion.
+          const triggerPlay = () => {
+            if (vid && vid.paused) {
+              vid.muted = true;
+              vid.play().catch(() => {});
+            }
+            window.removeEventListener("mousemove", triggerPlay);
+            window.removeEventListener("pointermove", triggerPlay);
+            window.removeEventListener("touchstart", triggerPlay);
+            window.removeEventListener("click", triggerPlay);
+            window.removeEventListener("scroll", triggerPlay);
+            window.removeEventListener("pointerdown", triggerPlay);
+          };
+
+          window.addEventListener("mousemove", triggerPlay, { once: true, passive: true });
+          window.addEventListener("pointermove", triggerPlay, { once: true, passive: true });
+          window.addEventListener("touchstart", triggerPlay, { once: true, passive: true });
+          window.addEventListener("click", triggerPlay, { once: true, passive: true });
+          window.addEventListener("scroll", triggerPlay, { once: true, passive: true });
+          window.addEventListener("pointerdown", triggerPlay, { once: true, passive: true });
+        });
       }
-    } catch {
-      // Ignore autoplay restriction failures
-    }
+    };
+
+    attemptPlay();
+
+    vid.addEventListener("canplay", attemptPlay);
+    vid.addEventListener("loadeddata", attemptPlay);
+
+    return () => {
+      vid.removeEventListener("canplay", attemptPlay);
+      vid.removeEventListener("loadeddata", attemptPlay);
+    };
   }, []);
 
   return (
@@ -78,12 +117,20 @@ export function HeroSection() {
           loop
           playsInline
           preload="auto"
+          onLoadedData={(e) => {
+            const v = e.currentTarget;
+            v.muted = true;
+            v.play().catch(() => {});
+          }}
+          onCanPlay={(e) => {
+            const v = e.currentTarget;
+            v.muted = true;
+            v.play().catch(() => {});
+          }}
           disablePictureInPicture
           className="absolute inset-0 w-full h-full object-cover opacity-100"
           aria-hidden="true"
-        >
-          <source src={asset("/assets/topvid.mp4")} type="video/mp4" />
-        </video>
+        />
 
         {/* Left-side gradient — keeps left content readable */}
         <div

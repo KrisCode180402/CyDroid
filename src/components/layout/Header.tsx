@@ -21,7 +21,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/utils/cn";
-import { asset } from "@/utils/asset";
+import { LogoIcon } from "@/components/ui/LogoIcon";
 
 // ─── Navigation Links ──────────────────────────────────────────────────────────
 const NAV_LINKS = [
@@ -158,19 +158,10 @@ function MobileMenu({
           <Link
             href="/"
             onClick={onClose}
-            className="flex items-center gap-3 group"
             aria-label="CYDROID TECHNOLOGIES Home"
+            className="group"
           >
-            <img
-              src={asset("/assets/logo.png")}
-              alt="Cydroid Logo"
-              width={40}
-              height={40}
-              className="w-10 h-10 object-contain"
-            />
-            <span className="text-sm font-black tracking-tight text-foreground group-hover:text-primary transition-colors duration-200">
-              CYDROID
-            </span>
+            <LogoIcon size={36} showText />
           </Link>
           <button
             type="button"
@@ -313,23 +304,9 @@ export function Header() {
             href="/"
             id="site-logo"
             aria-label="CYDROID TECHNOLOGIES Home"
-            className="flex items-center gap-3 flex-shrink-0 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-lg"
+            className="group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-lg flex-shrink-0"
           >
-            <img
-              src={asset("/assets/logo.png")}
-              alt="Cydroid Logo"
-              width={40}
-              height={40}
-              className="w-10 h-10 object-contain transition-transform duration-200 group-hover:scale-105"
-            />
-            <div className="flex flex-col justify-center leading-none">
-              <span className="text-sm font-black tracking-tight text-foreground group-hover:text-primary transition-colors duration-200">
-                CYDROID
-              </span>
-              <span className="text-[9px] font-bold tracking-[0.22em] uppercase text-muted-foreground mt-1">
-                Technologies
-              </span>
-            </div>
+            <LogoIcon size={40} showText />
           </Link>
 
           {/* Desktop Nav */}

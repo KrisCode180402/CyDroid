@@ -13,7 +13,7 @@
  */
 
 import Link from "next/link";
-import { asset } from "@/utils/asset";
+import { LogoIcon } from "@/components/ui/LogoIcon";
 
 // ================================================================
 // NAVIGATION DATA
@@ -120,23 +120,9 @@ export function Footer() {
             <Link
               href="/"
               aria-label="CYDROID TECHNOLOGIES — Home"
-              className="flex items-center gap-3.5 w-fit group"
+              className="w-fit group"
             >
-              <img
-                src={asset("/assets/logo.png")}
-                alt="Cydroid Logo"
-                width={40}
-                height={40}
-                className="w-10 h-10 object-contain transition-transform duration-300 group-hover:scale-105"
-              />
-              <div className="flex flex-col justify-center leading-none">
-                <span className="text-sm font-black tracking-tight text-foreground group-hover:text-primary transition-colors duration-200">
-                  CYDROID
-                </span>
-                <span className="text-[9px] font-bold tracking-[0.25em] uppercase text-muted-foreground mt-1">
-                  Technologies
-                </span>
-              </div>
+              <LogoIcon size={40} showText />
             </Link>
 
             {/* Brand statement */}
